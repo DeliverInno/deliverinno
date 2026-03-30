@@ -2,6 +2,13 @@
 
 A simple delivery-style web application with seller and buyer functionality.
 
+## Team
+
+- **Sofia Palkina** - [s.palkina@innopolis.university](mailto:s.palkina@innopolis.university)
+- **Amir Bairamov** - [a.bairamov@innopolis.university](mailto:a.bairamov@innopolis.university)
+- **Polina Kostikova** - [p.kostikova@innopolis.university](mailto:p.kostikova@innopolis.university)
+- **Bulat Gazizov** - [b.gazizov@innopolis.university](mailto:b.gazizov@innopolis.university)
+
 ## Features
 
 ### Sellers
@@ -31,11 +38,27 @@ A simple delivery-style web application with seller and buyer functionality.
 - Python 3.10+
 - Poetry
 
-### Installation
+### Installation and commands
 
 ```powershell
+# Clone repository
+https://github.com/DeliverInno/deliverinno.git
+cd deliverinno
+
+# Switch to dev branch
+git checkout dev
+
 # Install dependencies
-poetry install
+poetry install # if you have some problem in this step, add --no-root
+
+# Install pre-commit hooks
+poetry run pre-commit install
+
+# after you add your code
+git add .
+git commit -m "Your message"
+# Skip hooks temporarily (not recommended)
+git commit --no-verify -m "message"
 ```
 
 ## Project Structure (real)
@@ -54,9 +77,12 @@ deliverinno/
 │   ├── e2e/                       # Сквозные тесты (Streamlit)
 │   ├── performance/               # Load testing
 ├── data/                          # Данные приложения
+├── .flake8                        # Flake8 конфигурация
+├── .bandit                        # Bandit конфигурация
 ├── .pre-commit-config.yaml        # Pre-commit hooks
 ├── .gitignore
-└── README.md
+├── pyproject.toml                 # Poetry конфигурация
+├── README.md
 
 ```
 ## Project Structure (ideal)
