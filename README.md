@@ -189,3 +189,80 @@ deliverinno/
 
 
 ```
+
+## Database
+
+### Table Details
+
+#### `users`
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | INTEGER | Primary key, auto-increment |
+| `username` | TEXT | Unique username for login |
+| `password` | TEXT | SHA-256 hashed password |
+| `role` | TEXT | 'seller' or 'buyer' |
+| `created_at` | TIMESTAMP | Registration date |
+
+#### `products`
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | INTEGER | Primary key, auto-increment |
+| `name` | TEXT | Product name |
+| `description` | TEXT | Product description |
+| `price` | REAL | Price per unit (≥ 0) |
+| `quantity` | INTEGER | Available stock (≥ 0) |
+| `seller_id` | INTEGER | Foreign key to `users.id` |
+| `created_at` | TIMESTAMP | Creation date |
+
+#### `cart_items`
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | INTEGER | Primary key, auto-increment |
+| `user_id` | INTEGER | Foreign key to `users.id` |
+| `product_id` | INTEGER | Foreign key to `products.id` |
+| `quantity` | INTEGER | Quantity in cart (> 0) |
+| `added_at` | TIMESTAMP | When added to cart |
+
+**Unique constraint**: `(user_id, product_id)` - one item per product per user
+
+#### `orders`
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | INTEGER | Primary key, auto-increment |
+| `user_id` | INTEGER | Foreign key to `users.id` |
+| `total_amount` | REAL | Total order amount (≥ 0) |
+| `status` | TEXT | 'pending', 'confirmed', 'shipped', 'delivered', 'cancelled' |
+| `created_at` | TIMESTAMP | Order date |
+
+#### `order_items`
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | INTEGER | Primary key, auto-increment |
+| `order_id` | INTEGER | Foreign key to `orders.id` |
+| `product_id` | INTEGER | Foreign key to `products.id` |
+| `quantity` | INTEGER | Quantity ordered (> 0) |
+| `price_at_time` | REAL | Price at purchase time (snapshot) |
+
+### Working with the Database
+
+#### View Database Contents
+
+SQLite CLI
+
+```bash
+sqlite3 data/deliverinno.db
+# Then run SQL commands:
+.tables
+SELECT * FROM users;
+.quit
+```
+
+### Reset Database
+
+```
+# Delete the database file
+rm data/deliverinno.db
+
+# Restart the app (will recreate with demo users)
+poetry run uvicorn src.api.main:app --reload
+```

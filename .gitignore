@@ -16,10 +16,13 @@ htmlcov/
 .tox/
 .mypy_cache/
 
-# Database
+# Database file
 data/*.db
 data/*.sqlite
 data/*.sqlite3
+
+# But keep the folder structure
+!data/.gitkeep
 
 # IDE
 .vscode/
