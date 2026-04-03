@@ -76,19 +76,29 @@ def update_product(
     if product["seller_id"] != user["id"]:
         raise HTTPException(status_code=403, detail="Not your product")
 
-    update_fields = []
-    values = []
-
-    for field, value in payload.dict(exclude_unset=True).items():
-        update_fields.append(f"{field} = ?")
-        values.append(value)
-
-    if update_fields:
-        values.append(product_id)
-        conn.execute(
-            f"UPDATE products SET {', '.join(update_fields)} WHERE id = ?",
-            values,
+    if not payload.model_dump(exclude_unset=True):
+        raise HTTPException(
+            status_code=400,
+            detail="No fields provided for update",
         )
+
+    conn.execute(
+        """
+        UPDATE products
+        SET name = COALESCE(?, name),
+            description = COALESCE(?, description),
+            price = COALESCE(?, price),
+            quantity = COALESCE(?, quantity)
+        WHERE id = ?
+        """,
+        (
+            payload.name,
+            payload.description,
+            payload.price,
+            payload.quantity,
+            product_id,
+        ),
+    )
 
     return {"status": "updated"}
 
