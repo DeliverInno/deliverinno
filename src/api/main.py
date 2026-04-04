@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from src.core.database import init_db
 from src.api.routers.buyer import router as buyer_router
 from src.api.routers.auth import router as auth_router
+from src.api.routers.seller import router as seller_router
 
 
 app = FastAPI(
@@ -24,3 +25,4 @@ async def health_check() -> dict:
 
 app.include_router(buyer_router)
 app.include_router(auth_router)
+app.include_router(seller_router)

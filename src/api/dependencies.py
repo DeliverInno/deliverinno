@@ -31,3 +31,10 @@ def require_buyer(user=Depends(get_current_user)):
     if user["role"] != "buyer":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Buyer role required")
     return user
+
+
+def require_seller(user=Depends(get_current_user)):
+    """Ensure user has seller role."""
+    if user["role"] != "seller":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Seller role required",)
+    return user
