@@ -1,25 +1,12 @@
 from sqlite3 import Connection
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
 
 from src.api.dependencies import get_db_conn, require_seller
+from src.shared.models.buyer import ProductResponse
+from src.shared.models.seller import ProductCreate, ProductUpdate
 
 router = APIRouter(prefix="/seller", tags=["seller"])
-
-
-class ProductCreate(BaseModel):
-    name: str = Field(min_length=1, max_length=100)
-    description: str | None = None
-    price: float = Field(ge=0)
-    quantity: int = Field(ge=0)
-
-
-class ProductUpdate(BaseModel):
-    name: str | None = None
-    description: str | None = None
-    price: float | None = Field(default=None, ge=0)
-    quantity: int | None = Field(default=None, ge=0)
 
 
 @router.post("/products", status_code=status.HTTP_201_CREATED)
@@ -55,7 +42,7 @@ def list_own_products(
         (user["id"],),
     ).fetchall()
 
-    return [dict(row) for row in rows]
+    return [ProductResponse(**dict(row)) for row in rows]
 
 
 @router.put("/products/{product_id}")

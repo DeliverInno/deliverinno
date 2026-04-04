@@ -26,4 +26,4 @@ with st.spinner("Loading..."):
                         st.write(f"## Status: {order.status}")
                         for item in order.items:
                             st.write(
-                                f"- {item.product_id} x{item.quantity} for {item.price_at_time}")
+                                f"- {item.name} x{item.quantity} for {item.price_at_time}$")

@@ -37,7 +37,7 @@ buyer_catalog = st.Page(
 shopping_cart = st.Page("buyer/cart.py", title="Shopping cart", icon=":material/shopping_cart:")
 orders = st.Page("buyer/orders.py", title="Order history", icon=":material/orders:")
 
-dashboard = st.Page("admin/dashboard.py", title="Dashboard",
+dashboard = st.Page("seller/dashboard.py", title="Dashboard",
                     icon=":material/dashboard_2_gear:", default=True)
 
 if st.session_state.logged_in:

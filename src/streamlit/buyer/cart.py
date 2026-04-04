@@ -51,3 +51,5 @@ with st.spinner("Loading..."):
                         st.write(f"### {product.price} $")
         if st.button("Make order", width="stretch", type="primary"):
             makeOrder()
+    else:
+        st.error(response.json().get('detail'))
