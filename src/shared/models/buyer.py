@@ -27,6 +27,7 @@ class OrderItemResponse(BaseModel):
     product_id: int
     quantity: int
     price_at_time: float
+    name: str
 
     class Config:
         from_attributes = True
