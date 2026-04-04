@@ -8,8 +8,8 @@ authors = [
     "Polina Kostikova <p.kostikova@innopolis.university>",
     "Bulat Gazizov <b.gazizov@innopolis.university>"
 ]
-
-package-mode = false
+packages = [{include = "src"}]
+package-mode = true
 
 [tool.poetry.dependencies]
 python = "^3.10"
