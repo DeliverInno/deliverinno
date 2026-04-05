@@ -3,12 +3,13 @@
 from sqlite3 import Connection
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Form, HTTPException, status
 from pydantic import BaseModel, Field
 
-from src.api.dependencies import get_db_conn
+from src.api.dependencies import get_db_conn, create_access_token
 from src.core.database import hash_password
 
+TOKEN_TYPE = "bearer"  # nosec B105
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -26,6 +27,7 @@ class LoginRequest(BaseModel):
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 def register_user(payload: RegisterRequest, conn: Connection = Depends(get_db_conn)):
+    """Register new user."""
     existing = conn.execute(
         "SELECT id FROM users WHERE username = ?",
         (payload.username,),
@@ -42,18 +44,52 @@ def register_user(payload: RegisterRequest, conn: Connection = Depends(get_db_co
         (payload.username, password_hash, payload.role),
     )
     user_id = cursor.lastrowid or 0
-    return {"id": int(user_id), "username": payload.username, "role": payload.role}
+    user_id = int(user_id)
+
+    token = create_access_token(user_id, payload.role)
+    return {
+        "access_token": token,
+        "token_type": TOKEN_TYPE,
+        "id": user_id,
+        "username": payload.username,
+        "role": payload.role,
+    }
 
 
-@router.post("/login")
-def login_user(payload: LoginRequest, conn: Connection = Depends(get_db_conn)):
+def perform_login(username: str, password: str, conn: Connection = Depends(get_db_conn)):
     user = conn.execute(
         "SELECT id, username, password, role FROM users WHERE username = ?",
-        (payload.username,),
+        (username,),
     ).fetchone()
-    if not user or user["password"] != hash_password(payload.password):
+    if not user or user["password"] != hash_password(password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
         )
-    return {"id": user["id"], "username": user["username"], "role": user["role"]}
+
+    token = create_access_token(user["id"], user["role"])
+    return {
+        "access_token": token,
+        "token_type": TOKEN_TYPE,
+        "id": user["id"],
+        "username": user["username"],
+        "role": user["role"],
+    }
+
+
+def oauth2_form(
+    username: str = Form(...),
+    password: str = Form(...)
+):
+    return {"username": username, "password": password}
+
+
+@router.post("/token", include_in_schema=False)
+def login(data: dict = Depends(oauth2_form), conn: Connection = Depends(get_db_conn)):
+    return perform_login(data["username"], data["password"], conn)
+
+
+@router.post("/login")
+def login_user(payload: LoginRequest, conn: Connection = Depends(get_db_conn)):
+    """Login user."""
+    return perform_login(payload.username, payload.password, conn)
