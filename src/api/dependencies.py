@@ -1,8 +1,9 @@
+from fastapi.security import OAuth2PasswordBearer
 import jwt
 from datetime import datetime, timedelta
-from typing import Generator
+from typing import Annotated, Generator
 from sqlite3 import Connection
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, HTTPException, status
 
 from src.core.database import get_db, SECRET_KEY, ALGORITHM
 
@@ -23,41 +24,27 @@ def create_access_token(user_id: int, role: str) -> str:
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def verify_token(token: str | None = Header(default=None, alias="Authorization")) -> dict:
-    """Verify JWT token from Authorization header."""
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing token",
-        )
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 
-    # Remove "Bearer " prefix if present
-    if token.startswith("Bearer "):
-        token = token[7:]
 
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = int(payload.get("sub"))
+        user_id = payload.get("sub")
         role = payload.get("role")
         if user_id is None or role is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token",
-            )
-        return {"id": user_id, "role": role}
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token expired",
-        )
+            raise credentials_exception
     except jwt.InvalidTokenError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
-        )
+        raise credentials_exception
+    return {"id": user_id, "role": role}
 
 
-def require_buyer(user=Depends(verify_token)) -> dict:
+def require_buyer(user=Depends(get_current_user)) -> dict:
     """Ensure user has buyer role."""
     if user["role"] != "buyer":
         raise HTTPException(
@@ -67,7 +54,7 @@ def require_buyer(user=Depends(verify_token)) -> dict:
     return user
 
 
-def require_seller(user=Depends(verify_token)) -> dict:
+def require_seller(user=Depends(get_current_user)) -> dict:
     """Ensure user has seller role."""
     if user["role"] != "seller":
         raise HTTPException(

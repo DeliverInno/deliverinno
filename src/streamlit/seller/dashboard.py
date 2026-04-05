@@ -6,7 +6,7 @@ from streamlit_app import API_URL
 
 
 def updateProduct(product_id: int, name: str, description: str, price: float, quantity: int):
-    headers = {"X-User-Id": str(st.session_state.id)}
+    headers = {"Authorization Bearer": str(st.session_state.access_token)}
     try:
         res = requests.put(
             f"{API_URL}/seller/products/{product_id}",
@@ -26,8 +26,27 @@ def updateProduct(product_id: int, name: str, description: str, price: float, qu
         st.error(f"Connection failed: {e}")
 
 
+def deleteProduct(product_id: int):
+    headers = {"Authorization Bearer": str(st.session_state.access_token)}
+    try:
+        res = requests.delete(
+            f"{API_URL}/seller/products/{product_id}",
+            headers=headers,
+            timeout=5
+        )
+
+        if res.status_code == 204:
+            st.toast(f"Removed product {name}")
+            st.rerun()
+        else:
+            st.error(f"Error: {res.status_code}")
+
+    except Exception as e:
+        st.error(f"Connection failed: {e}")
+
+
 def createProduct(name: str, description: str, price: float, quantity: int):
-    headers = {"X-User-Id": str(st.session_state.id)}
+    headers = {"Authorization Bearer": str(st.session_state.access_token)}
     try:
         res = requests.post(
             f"{API_URL}/seller/products",
@@ -67,7 +86,7 @@ with st.form("add_product"):
 
 
 with st.spinner("Loading..."):
-    headers = {"X-User-Id": str(st.session_state.id)}
+    headers = {"Authorization Bearer": str(st.session_state.access_token)}
     response = requests.get(
         f"{API_URL}/seller/products",
         headers=headers,

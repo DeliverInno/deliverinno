@@ -26,7 +26,7 @@ def register(username: str, password: str, role: Literal["buyer", "seller"] | st
 
                 if response.status_code == 201:
                     result = response.json()
-                    st.session_state.id = result.get('id')
+                    st.session_state.access_token = result.get('access_token')
                     st.session_state.role = result.get('role')
                     st.session_state.logged_in = True
                     st.rerun()
