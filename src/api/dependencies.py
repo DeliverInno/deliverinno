@@ -1,9 +1,10 @@
-from fastapi.security import OAuth2PasswordBearer
-import jwt
 from datetime import datetime, timedelta
 from typing import Annotated, Generator
 from sqlite3 import Connection
+
+import jwt
 from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from src.core.database import get_db, SECRET_KEY, ALGORITHM
 
@@ -24,16 +25,19 @@ def create_access_token(user_id: int, role: str) -> str:
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
+http_bearer = HTTPBearer()
 
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+async def get_current_user(
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(http_bearer)]
+):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
+        token = credentials.credentials
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
         role = payload.get("role")
