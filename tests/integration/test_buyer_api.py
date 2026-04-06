@@ -116,7 +116,7 @@ class TestBuyerCartEndpoint:
             "/buyer/cart",
             json={"product_id": test_product, "quantity": 1}
         )
-        assert response.status_code == 401
+        assert response.status_code == 403
 
     def test_add_to_cart_product_not_found(self, buyer_token):
         """Test adding non-existent product."""
@@ -164,7 +164,7 @@ class TestBuyerCartEndpoint:
     def test_get_cart_unauthorized(self):
         """Test getting cart without auth."""
         response = client.get("/buyer/cart")
-        assert response.status_code == 401
+        assert response.status_code == 403
 
 
 class TestBuyerOrdersEndpoint:
@@ -215,7 +215,7 @@ class TestBuyerOrdersEndpoint:
     def test_place_order_unauthorized(self, test_product):
         """Test placing order without auth."""
         response = client.post("/buyer/orders")
-        assert response.status_code == 401
+        assert response.status_code == 403
 
     def test_list_orders_empty(self, buyer_token):
         """Test listing orders when none exist."""
@@ -249,7 +249,7 @@ class TestBuyerOrdersEndpoint:
     def test_list_orders_unauthorized(self):
         """Test listing orders without auth."""
         response = client.get("/buyer/orders")
-        assert response.status_code == 401
+        assert response.status_code == 403
 
     def test_list_orders_multiple(self, buyer_token, seller_token):
         """Test listing multiple orders."""

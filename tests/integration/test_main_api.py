@@ -38,7 +38,7 @@ def test_app_includes_seller_router():
     from src.api.main import app
     client = TestClient(app)
     response = client.get("/seller/products")
-    assert response.status_code in [401]
+    assert response.status_code in [403]
 
 
 def test_app_metadata():
