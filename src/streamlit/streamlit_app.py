@@ -1,6 +1,7 @@
+import os
 import streamlit as st
 
-API_URL = "http://0.0.0.0:8000"
+API_URL = os.getenv('API_URL', "http://0.0.0.0:8000")
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False

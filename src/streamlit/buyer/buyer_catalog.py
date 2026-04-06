@@ -5,7 +5,7 @@ from streamlit_app import API_URL
 
 
 def addToCart(product_id: int, count: int):
-    headers = {"Authorization Bearer": str(st.session_state.access_token)}
+    headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
     try:
         res = requests.post(
             f"{API_URL}/buyer/cart",

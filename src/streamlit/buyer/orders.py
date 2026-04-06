@@ -10,7 +10,7 @@ cols = st.columns(COLS, width="stretch")
 
 
 with st.spinner("Loading..."):
-    headers = {"Authorization Bearer": str(st.session_state.access_token)}
+    headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
     response = requests.get(f"{API_URL}/buyer/orders", headers=headers,
                             timeout=5)
 

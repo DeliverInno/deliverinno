@@ -1,0 +1,26 @@
+services:
+  backend:
+    container_name: "backend"
+    build:
+        context: .
+        target: runtime
+    command: "uvicorn src.api.main:app --host 0.0.0.0 --port 8000"
+    # Вообще, так делать не стоит, но пусть будет для /docs
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+
+  frontend:
+    container_name: "frontend"
+    build:
+        context: .
+        target: runtime
+    command: "streamlit run src/streamlit/streamlit_app.py --server.port=8501 --server.address=0.0.0.0"
+    ports:
+      - "8501:8501"
+    environment:
+      - PYTHONPATH=/app
+      - API_URL=http://backend:8000
+    depends_on:
+      - backend

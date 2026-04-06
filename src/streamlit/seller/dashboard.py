@@ -6,7 +6,7 @@ from streamlit_app import API_URL
 
 
 def updateProduct(product_id: int, name: str, description: str, price: float, quantity: int):
-    headers = {"Authorization Bearer": str(st.session_state.access_token)}
+    headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
     try:
         res = requests.put(
             f"{API_URL}/seller/products/{product_id}",
@@ -27,7 +27,7 @@ def updateProduct(product_id: int, name: str, description: str, price: float, qu
 
 
 def deleteProduct(product_id: int):
-    headers = {"Authorization Bearer": str(st.session_state.access_token)}
+    headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
     try:
         res = requests.delete(
             f"{API_URL}/seller/products/{product_id}",
@@ -46,7 +46,7 @@ def deleteProduct(product_id: int):
 
 
 def createProduct(name: str, description: str, price: float, quantity: int):
-    headers = {"Authorization Bearer": str(st.session_state.access_token)}
+    headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
     try:
         res = requests.post(
             f"{API_URL}/seller/products",
@@ -86,7 +86,7 @@ with st.form("add_product"):
 
 
 with st.spinner("Loading..."):
-    headers = {"Authorization Bearer": str(st.session_state.access_token)}
+    headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
     response = requests.get(
         f"{API_URL}/seller/products",
         headers=headers,
