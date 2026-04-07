@@ -39,7 +39,8 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         role = payload.get("role")
         if user_id is None or role is None:
             raise credentials_exception
-    except jwt.InvalidTokenError:
+        user_id = int(user_id)
+    except (jwt.InvalidTokenError, ValueError):
         raise credentials_exception
     return {"id": user_id, "role": role}
 
