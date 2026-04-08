@@ -10,7 +10,9 @@ SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
 ALGORITHM = "HS256"
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-DB_PATH = BASE_DIR / "data" / "deliverinno.db"
+
+# Используем env var для выбора БД
+DB_PATH = Path(os.getenv("DATABASE_PATH", str(BASE_DIR / "data" / "deliverinno.db")))
 
 
 def get_db_connection():
