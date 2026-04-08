@@ -57,11 +57,10 @@ jobs:
     - name: Install dependencies
       run: poetry install --no-interaction
 
-    - name: Run tests (if any)
-      run: |
-        # Проверяем, есть ли тесты
-        if [ -d "tests" ] && [ "$(find tests -name 'test_*.py' -type f | wc -l)" -gt 0 ]; then
-          poetry run pytest tests/ --cov=src --cov-report=term-missing
-        else
-          echo "No tests found yet. Skipping..."
-        fi
+    - name: Create data directory
+      run: mkdir -p data
+
+    - name: Run tests with coverage
+      run: poetry run pytest tests/ --cov=src --cov-report=term-missing -v
+      env:
+        DATABASE_PATH: ${{ github.workspace }}/data/test_deliverinno.db

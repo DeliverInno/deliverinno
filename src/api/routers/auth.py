@@ -3,7 +3,7 @@
 from sqlite3 import Connection
 from typing import Literal
 
-from fastapi import APIRouter, Depends, Form, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
 from src.api.dependencies import get_db_conn, create_access_token
@@ -56,12 +56,14 @@ def register_user(payload: RegisterRequest, conn: Connection = Depends(get_db_co
     }
 
 
-def perform_login(username: str, password: str, conn: Connection = Depends(get_db_conn)):
+@router.post("/login")
+def login_user(payload: LoginRequest, conn: Connection = Depends(get_db_conn)):
+    """Login user."""
     user = conn.execute(
         "SELECT id, username, password, role FROM users WHERE username = ?",
-        (username,),
+        (payload.username,),
     ).fetchone()
-    if not user or user["password"] != hash_password(password):
+    if not user or user["password"] != hash_password(payload.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
@@ -75,21 +77,3 @@ def perform_login(username: str, password: str, conn: Connection = Depends(get_d
         "username": user["username"],
         "role": user["role"],
     }
-
-
-def oauth2_form(
-    username: str = Form(...),
-    password: str = Form(...)
-):
-    return {"username": username, "password": password}
-
-
-@router.post("/token", include_in_schema=False)
-def login(data: dict = Depends(oauth2_form), conn: Connection = Depends(get_db_conn)):
-    return perform_login(data["username"], data["password"], conn)
-
-
-@router.post("/login")
-def login_user(payload: LoginRequest, conn: Connection = Depends(get_db_conn)):
-    """Login user."""
-    return perform_login(payload.username, payload.password, conn)

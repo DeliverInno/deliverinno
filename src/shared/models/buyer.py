@@ -1,5 +1,5 @@
 from typing import List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class AddToCartRequest(BaseModel):
@@ -17,8 +17,7 @@ class CartItemResponse(BaseModel):
     price: float
     quantity: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OrderItemResponse(BaseModel):
@@ -29,8 +28,7 @@ class OrderItemResponse(BaseModel):
     price_at_time: float
     name: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OrderResponse(BaseModel):
@@ -41,8 +39,7 @@ class OrderResponse(BaseModel):
     status: str
     items: List[OrderItemResponse]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ProductResponse(BaseModel):
@@ -55,5 +52,4 @@ class ProductResponse(BaseModel):
     quantity: int
     seller_id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
