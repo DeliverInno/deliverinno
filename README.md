@@ -12,11 +12,13 @@ A simple delivery-style web application with seller and buyer functionality.
 ## Features
 
 ### Sellers
+
 - Register/Login
 - Add, edit, and delete products
 - Manage inventory
 
 ### Buyers
+
 - Register/Login
 - Browse products
 - Shopping cart
@@ -31,10 +33,10 @@ A simple delivery-style web application with seller and buyer functionality.
 - **Quality**: flake8, bandit, radon
 - **CI/CD**: GitHub Actions
 
-
 ## Quick Start
 
 ### Prerequisites
+
 - Python 3.10+
 - Poetry
 
@@ -61,7 +63,22 @@ git commit -m "Your message"
 git commit --no-verify -m "message"
 ```
 
+## How to run
+
+```bash
+docker compose up --build
+```
+
+### Access application
+
+- Frontend (Streamlit): http://localhost:8501
+
+- Backend (FastAPI): http://localhost:8000
+
+- API Docs (Swagger): http://localhost:8000/docs
+
 ## Project Structure (real)
+
 ```
 deliverinno/
 ├── .github/
@@ -85,7 +102,9 @@ deliverinno/
 ├── README.md
 
 ```
+
 ## Project Structure (ideal)
+
 ```
 deliverinno/
 ├── .github/
@@ -195,6 +214,7 @@ deliverinno/
 ### Table Details
 
 #### `users`
+
 | Column | Type | Description |
 |--------|------|-------------|
 | `id` | INTEGER | Primary key, auto-increment |
@@ -204,6 +224,7 @@ deliverinno/
 | `created_at` | TIMESTAMP | Registration date |
 
 #### `products`
+
 | Column | Type | Description |
 |--------|------|-------------|
 | `id` | INTEGER | Primary key, auto-increment |
@@ -215,6 +236,7 @@ deliverinno/
 | `created_at` | TIMESTAMP | Creation date |
 
 #### `cart_items`
+
 | Column | Type | Description |
 |--------|------|-------------|
 | `id` | INTEGER | Primary key, auto-increment |
@@ -226,6 +248,7 @@ deliverinno/
 **Unique constraint**: `(user_id, product_id)` - one item per product per user
 
 #### `orders`
+
 | Column | Type | Description |
 |--------|------|-------------|
 | `id` | INTEGER | Primary key, auto-increment |
@@ -235,6 +258,7 @@ deliverinno/
 | `created_at` | TIMESTAMP | Order date |
 
 #### `order_items`
+
 | Column | Type | Description |
 |--------|------|-------------|
 | `id` | INTEGER | Primary key, auto-increment |

@@ -24,7 +24,7 @@ def login(username: str, password: str):
 
                 if response.status_code == 200:
                     result = response.json()
-                    st.session_state.token = result.get('access_token')
+                    st.session_state.access_token = result.get('access_token')
                     st.session_state.role = result.get('role')
                     st.session_state.logged_in = True
                     st.rerun()
