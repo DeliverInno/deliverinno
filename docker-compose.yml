@@ -10,6 +10,8 @@ services:
       - "8000:8000"
     environment:
       - PYTHONPATH=/app
+    volumes:
+      - ./data:/app/data
 
   frontend:
     container_name: "frontend"
