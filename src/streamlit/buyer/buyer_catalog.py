@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 from src.shared.models.buyer import AddToCartRequest, ProductResponse
-from streamlit_app import API_URL
+from src.streamlit.config import API_URL
 
 
 def addToCart(product_id: int, count: int):

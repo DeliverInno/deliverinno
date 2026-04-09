@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
-from streamlit_app import API_URL
+
+from src.streamlit.config import API_URL
 
 st.title = "Login page"
 
@@ -43,14 +44,15 @@ def login(username: str, password: str):
                 st.error(f"Error: {str(e)}")
 
 
-with st.form("login", border=True):
-    username = st.text_input("Username", icon=":material/person:")
-    password = st.text_input("Password", type="password", icon=":material/password:")
-    submit = st.form_submit_button("Login", icon=":material/login:",
-                                   type="primary", use_container_width=True)
-    if submit:
-        login(username, password)
+def show_login():
+    with st.form(key="login", border=True):
+        username = st.text_input("Username", icon=":material/person:")
+        password = st.text_input("Password", type="password", icon=":material/password:")
+        submit = st.form_submit_button("Login", icon=":material/login:",
+                                       type="primary", use_container_width=True)
+        if submit:
+            login(username, password)
 
-if st.button("Don't have account? Register!", width="stretch"):
-    st.session_state.page = "register"
-    st.rerun()
+    if st.button("Don't have account? Register!", width="stretch"):
+        st.session_state.page = "register"
+        st.rerun()

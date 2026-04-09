@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 from src.shared.models.buyer import ProductResponse
 from src.shared.models.seller import ProductCreate, ProductUpdate
-from streamlit_app import API_URL
+from src.streamlit.config import API_URL
 
 
 def updateProduct(product_id: int, name: str, description: str, price: float, quantity: int):
@@ -70,8 +70,6 @@ COLS = 2
 
 cols = st.columns(COLS, width="stretch")
 
-
-st.popover("Add new product")
 with st.form("add_product"):
     name = st.text_input("Name")
     desc = st.text_input("Description")
@@ -118,4 +116,4 @@ with st.spinner("Loading..."):
                                     else:
                                         updateProduct(product.id, name, desc, price, qt)
     else:
-        st.error(response.json().get('detail'))
+        st.error(response)

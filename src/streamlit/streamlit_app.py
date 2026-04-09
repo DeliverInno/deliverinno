@@ -1,7 +1,12 @@
-import os
 import streamlit as st
+import sys
+from pathlib import Path
 
-API_URL = os.getenv('API_URL', "http://0.0.0.0:8000")
+from src.streamlit.login import show_login
+from src.streamlit.register import show_register
+
+
+sys.path.insert(0, str(Path(__file__).parent))
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -9,13 +14,6 @@ if "page" not in st.session_state:
     st.session_state.page = "login"
 if "role" not in st.session_state:
     st.session_state.role = "none"
-
-
-def login():
-    if st.button("Log in"):
-        st.session_state.logged_in = True
-        st.session_state.role = "admin"
-        st.rerun()
 
 
 def logout():
@@ -28,8 +26,8 @@ def logout():
 st.title = "DeliverInno"
 
 
-login_page = st.Page("login.py", title="Log in", icon=":material/login:")
-register_page = st.Page("register.py", title="Register", icon=":material/login:")
+login_page = st.Page(show_login, title="Log in", icon=":material/login:")
+register_page = st.Page(show_register, title="Register", icon=":material/login:")
 logout_page = st.Page(logout, title="Log out", icon=":material/logout:")
 
 buyer_catalog = st.Page(

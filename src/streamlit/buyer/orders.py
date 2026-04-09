@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 from src.shared.models.buyer import OrderResponse
-from streamlit_app import API_URL
+from src.streamlit.config import API_URL
 
 
 COLS = 2
