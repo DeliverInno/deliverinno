@@ -1,7 +1,7 @@
 """Buyer business logic services."""
 
 from typing import List
-from sqlite3 import Connection
+from sqlite3 import Connection, OperationalError, IntegrityError, DatabaseError
 
 from fastapi import HTTPException, status
 
@@ -15,160 +15,199 @@ from src.shared.models.buyer import (
 
 
 def list_products(conn: Connection) -> List[ProductResponse]:
-    rows = conn.execute(
-        """
-        SELECT id, name, description, price, quantity, seller_id
-        FROM products
-        WHERE quantity > 0
-        ORDER BY id DESC
-        """
-    ).fetchall()
-    return [ProductResponse(**dict(row)) for row in rows]
+    try:
+        rows = conn.execute(
+            """
+            SELECT id, name, description, price, quantity, seller_id
+            FROM products
+            WHERE quantity > 0
+            ORDER BY id DESC
+            """
+        ).fetchall()
+        return [ProductResponse(**dict(row)) for row in rows]
+    except (OperationalError, IntegrityError, DatabaseError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Database error: {e}",
+        )
 
 
 def add_to_cart(conn: Connection, user_id: int, payload: AddToCartRequest) -> dict:
-    product = conn.execute(
-        "SELECT id, quantity FROM products WHERE id = ?",
-        (payload.product_id,),
-    ).fetchone()
-
-    if product is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Product not found",
+    try:
+        # 1) Атомарно уменьшаем остаток только если хватает товара
+        cur = conn.execute(
+            """
+            UPDATE products
+            SET quantity = quantity - ?
+            WHERE id = ? AND quantity >= ?
+            """,
+            (payload.quantity, payload.product_id, payload.quantity),
         )
 
-    if payload.quantity > product["quantity"]:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Not enough stock",
+        if cur.rowcount == 0:
+            product = conn.execute(
+                "SELECT id, quantity FROM products WHERE id = ?",
+                (payload.product_id,),
+            ).fetchone()
+
+            if product is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Product not found",
+                )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Not enough stock",
+            )
+
+        # 2) Upsert в корзину
+        conn.execute(
+            """
+            INSERT INTO cart_items (user_id, product_id, quantity)
+            VALUES (?, ?, ?)
+            ON CONFLICT(user_id, product_id)
+            DO UPDATE SET quantity = quantity + excluded.quantity
+            """,
+            (user_id, payload.product_id, payload.quantity),
         )
 
-    conn.execute(
-        """
-        INSERT INTO cart_items (user_id, product_id, quantity)
-        VALUES (?, ?, ?)
-        ON CONFLICT(user_id, product_id)
-        DO UPDATE SET quantity = quantity + excluded.quantity
-        """,
-        (user_id, payload.product_id, payload.quantity),
-    )
+        return {"status": "ok"}
 
-    conn.execute(
-        "UPDATE products SET quantity = quantity - ? WHERE id = ?",
-        (payload.quantity, payload.product_id),
-    )
-
-    return {"status": "ok"}
+    except HTTPException:
+        raise
+    except (OperationalError, IntegrityError, DatabaseError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Database error: {e}",
+        )
 
 
 def get_cart(conn: Connection, user_id: int) -> List[CartItemResponse]:
-    rows = conn.execute(
-        """
-        SELECT ci.product_id, p.name, p.price, ci.quantity
-        FROM cart_items ci
-        JOIN products p ON p.id = ci.product_id
-        WHERE ci.user_id = ?
-        ORDER BY ci.added_at DESC
-        """,
-        (user_id,),
-    ).fetchall()
-
-    return [CartItemResponse(**dict(row)) for row in rows]
+    try:
+        rows = conn.execute(
+            """
+            SELECT ci.product_id, p.name, p.price, ci.quantity
+            FROM cart_items ci
+            JOIN products p ON p.id = ci.product_id
+            WHERE ci.user_id = ?
+            ORDER BY ci.added_at DESC
+            """,
+            (user_id,),
+        ).fetchall()
+        return [CartItemResponse(**dict(row)) for row in rows]
+    except (OperationalError, IntegrityError, DatabaseError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Database error: {e}",
+        )
 
 
 def place_order(conn: Connection, user_id: int) -> OrderResponse:
-    cart_rows = conn.execute(
-        """
-        SELECT ci.product_id, ci.quantity, p.price, p.name
-        FROM cart_items ci
-        JOIN products p ON p.id = ci.product_id
-        WHERE ci.user_id = ?
-        """,
-        (user_id,),
-    ).fetchall()
-
-    if not cart_rows:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cart is empty",
-        )
-
-    total = sum(row["quantity"] * row["price"] for row in cart_rows)
-    cursor = conn.execute(
-        """
-        INSERT INTO orders (user_id, total_amount, status)
-        VALUES (?, ?, 'pending')
-        """,
-        (user_id, total),
-    )
-    order_id = cursor.lastrowid
-
-    if order_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create order",
-        )
-
-    order_id = int(order_id)
-
-    for row in cart_rows:
-        conn.execute(
+    try:
+        cart_rows = conn.execute(
             """
-            INSERT INTO order_items (order_id, product_id, quantity, price_at_time)
-            VALUES (?, ?, ?, ?)
+            SELECT ci.product_id, ci.quantity, p.price, p.name
+            FROM cart_items ci
+            JOIN products p ON p.id = ci.product_id
+            WHERE ci.user_id = ?
             """,
-            (order_id, row["product_id"], row["quantity"], row["price"]),
+            (user_id,),
+        ).fetchall()
+
+        if not cart_rows:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cart is empty",
+            )
+
+        total = sum(row["quantity"] * row["price"] for row in cart_rows)
+        cursor = conn.execute(
+            """
+            INSERT INTO orders (user_id, total_amount, status)
+            VALUES (?, ?, 'pending')
+            """,
+            (user_id, total),
         )
+        order_id = cursor.lastrowid
 
-    conn.execute("DELETE FROM cart_items WHERE user_id = ?", (user_id,))
+        if order_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to create order",
+            )
 
-    items_with_names = conn.execute(
-        """
-        SELECT oi.product_id, oi.quantity, oi.price_at_time, p.name
-        FROM order_items oi
-        JOIN products p ON p.id = oi.product_id
-        WHERE oi.order_id = ?
-        """,
-        (order_id,),
-    ).fetchall()
+        order_id = int(order_id)
 
-    return OrderResponse(
-        id=order_id,
-        total_amount=total,
-        status="pending",
-        items=[OrderItemResponse(**dict(item)) for item in items_with_names],
-    )
+        for row in cart_rows:
+            conn.execute(
+                """
+                INSERT INTO order_items (order_id, product_id, quantity, price_at_time)
+                VALUES (?, ?, ?, ?)
+                """,
+                (order_id, row["product_id"], row["quantity"], row["price"]),
+            )
 
+        conn.execute("DELETE FROM cart_items WHERE user_id = ?", (user_id,))
 
-def list_orders(conn: Connection, user_id: int) -> List[OrderResponse]:
-    orders = conn.execute(
-        """
-        SELECT id, total_amount, status
-        FROM orders
-        WHERE user_id = ?
-        ORDER BY id DESC
-        """,
-        (user_id,),
-    ).fetchall()
-
-    results: List[OrderResponse] = []
-    for order in orders:
-        items = conn.execute(
+        items_with_names = conn.execute(
             """
             SELECT oi.product_id, oi.quantity, oi.price_at_time, p.name
             FROM order_items oi
             JOIN products p ON p.id = oi.product_id
             WHERE oi.order_id = ?
             """,
-            (order["id"],),
+            (order_id,),
         ).fetchall()
-        results.append(
-            OrderResponse(
-                id=order["id"],
-                total_amount=order["total_amount"],
-                status=order["status"],
-                items=[OrderItemResponse(**dict(item)) for item in items],
-            )
+
+        return OrderResponse(
+            id=order_id,
+            total_amount=total,
+            status="pending",
+            items=[OrderItemResponse(**dict(item)) for item in items_with_names],
         )
-    return results
+    except HTTPException:
+        raise
+    except (OperationalError, IntegrityError, DatabaseError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Database error: {e}",
+        )
+
+
+def list_orders(conn: Connection, user_id: int) -> List[OrderResponse]:
+    try:
+        orders = conn.execute(
+            """
+            SELECT id, total_amount, status
+            FROM orders
+            WHERE user_id = ?
+            ORDER BY id DESC
+            """,
+            (user_id,),
+        ).fetchall()
+
+        results: List[OrderResponse] = []
+        for order in orders:
+            items = conn.execute(
+                """
+                SELECT oi.product_id, oi.quantity, oi.price_at_time, p.name
+                FROM order_items oi
+                JOIN products p ON p.id = oi.product_id
+                WHERE oi.order_id = ?
+                """,
+                (order["id"],),
+            ).fetchall()
+            results.append(
+                OrderResponse(
+                    id=order["id"],
+                    total_amount=order["total_amount"],
+                    status=order["status"],
+                    items=[OrderItemResponse(**dict(item)) for item in items],
+                )
+            )
+        return results
+    except (OperationalError, IntegrityError, DatabaseError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Database error: {e}",
+        )

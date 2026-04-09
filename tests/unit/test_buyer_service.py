@@ -67,8 +67,17 @@ class TestAddToCart:
 
     def test_add_to_cart_product_not_found(self, mock_conn):
         """Test adding non-existent product."""
-        mock_conn.execute.return_value.fetchone.return_value = None
         payload = AddToCartRequest(product_id=999, quantity=1)
+
+        # 1) UPDATE не изменил строк
+        update_cursor = MagicMock()
+        update_cursor.rowcount = 0
+
+        # 2) SELECT product -> None
+        select_cursor = MagicMock()
+        select_cursor.fetchone.return_value = None
+
+        mock_conn.execute.side_effect = [update_cursor, select_cursor]
 
         with pytest.raises(HTTPException) as exc:
             buyer_service.add_to_cart(mock_conn, user_id=1, payload=payload)
@@ -77,10 +86,18 @@ class TestAddToCart:
 
     def test_add_to_cart_insufficient_stock(self, mock_conn):
         """Test adding more than available stock."""
-        mock_product = create_mock_row({"id": 1, "quantity": 5})
-        mock_conn.execute.return_value.fetchone.return_value = mock_product
-
         payload = AddToCartRequest(product_id=1, quantity=10)
+
+        # 1) UPDATE не изменил строк
+        update_cursor = MagicMock()
+        update_cursor.rowcount = 0
+
+        # 2) SELECT product вернул товар (значит просто не хватает остатков)
+        mock_product = create_mock_row({"id": 1, "quantity": 5})
+        select_cursor = MagicMock()
+        select_cursor.fetchone.return_value = mock_product
+
+        mock_conn.execute.side_effect = [update_cursor, select_cursor]
 
         with pytest.raises(HTTPException) as exc:
             buyer_service.add_to_cart(mock_conn, user_id=1, payload=payload)
