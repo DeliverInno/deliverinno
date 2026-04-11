@@ -231,6 +231,12 @@ poetry run radon cc -a -s src/
 
 # Maintainability index
 poetry run radon mi -s src/
+
+# Performance Testing for Windows
+.\tests\performance\run_perf.ps1C
+
+# Performance Testing for Mac/Linux
+.\tests\performance\run_perf.sh
 ```
 
 ## Demo Accounts
