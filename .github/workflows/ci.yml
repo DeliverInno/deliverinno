@@ -62,8 +62,7 @@ jobs:
 
     - name: Run tests with coverage
       run: |
-        poetry run pytest tests/unit --cov=src --cov-report=term-missing -v --cov-fail-under=50
-        poetry run pytest tests/streamlit --cov=src --cov-report=term-missing -v --cov-fail-under=50
+        poetry run pytest tests/unit tests/streamlit --cov=src --cov-report=term-missing -v --cov-fail-under=50
         poetry run pytest tests/integration --cov=src --cov-report=term-missing -v --cov-fail-under=50
       env:
         DATABASE_PATH: ${{ github.workspace }}/data/test_deliverinno.db
