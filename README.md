@@ -28,7 +28,7 @@ A simple delivery-style web application with seller and buyer functionality.
 - **Backend**: FastAPI, SQLite
 - **Frontend**: Streamlit
 - **Testing**: pytest, pytest-cov
-- **Quality**: flake8, bandit, radon
+- **Quality**: flake8, bandit, radon, locust
 - **CI/CD**: GitHub Actions
 
 ## Quick Start
