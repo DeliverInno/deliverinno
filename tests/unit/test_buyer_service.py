@@ -67,8 +67,17 @@ class TestAddToCart:
 
     def test_add_to_cart_product_not_found(self, mock_conn):
         """Test adding non-existent product."""
-        mock_conn.execute.return_value.fetchone.return_value = None
         payload = AddToCartRequest(product_id=999, quantity=1)
+
+        # 1) UPDATE не изменил строк
+        update_cursor = MagicMock()
+        update_cursor.rowcount = 0
+
+        # 2) SELECT product -> None
+        select_cursor = MagicMock()
+        select_cursor.fetchone.return_value = None
+
+        mock_conn.execute.side_effect = [update_cursor, select_cursor]
 
         with pytest.raises(HTTPException) as exc:
             buyer_service.add_to_cart(mock_conn, user_id=1, payload=payload)
@@ -77,10 +86,18 @@ class TestAddToCart:
 
     def test_add_to_cart_insufficient_stock(self, mock_conn):
         """Test adding more than available stock."""
-        mock_product = create_mock_row({"id": 1, "quantity": 5})
-        mock_conn.execute.return_value.fetchone.return_value = mock_product
-
         payload = AddToCartRequest(product_id=1, quantity=10)
+
+        # 1) UPDATE не изменил строк
+        update_cursor = MagicMock()
+        update_cursor.rowcount = 0
+
+        # 2) SELECT product вернул товар (значит просто не хватает остатков)
+        mock_product = create_mock_row({"id": 1, "quantity": 5})
+        select_cursor = MagicMock()
+        select_cursor.fetchone.return_value = mock_product
+
+        mock_conn.execute.side_effect = [update_cursor, select_cursor]
 
         with pytest.raises(HTTPException) as exc:
             buyer_service.add_to_cart(mock_conn, user_id=1, payload=payload)
@@ -347,3 +364,95 @@ class TestListOrders:
         assert len(result) == 2
         assert result[0].id == 1
         assert result[1].id == 2
+
+
+class TestListProductsErrors:
+    """Test list_products error handling."""
+
+    def test_list_products_database_error(self, mock_conn):
+        """Test list_products with database error."""
+        from sqlite3 import OperationalError
+        mock_conn.execute.side_effect = OperationalError("Database locked")
+
+        with pytest.raises(HTTPException) as exc:
+            buyer_service.list_products(mock_conn)
+
+        assert exc.value.status_code == 503
+        assert "Database error" in exc.value.detail
+
+
+class TestAddToCartErrors:
+    """Test add_to_cart error handling."""
+
+    def test_add_to_cart_database_error(self, mock_conn):
+        """Test add_to_cart with database error."""
+        from sqlite3 import DatabaseError
+
+        update_cursor = MagicMock()
+        update_cursor.rowcount = 0
+        mock_conn.execute.side_effect = [
+            update_cursor,
+            DatabaseError("Database connection lost")
+        ]
+
+        payload = AddToCartRequest(product_id=1, quantity=1)
+
+        with pytest.raises(HTTPException) as exc:
+            buyer_service.add_to_cart(mock_conn, user_id=1, payload=payload)
+
+        assert exc.value.status_code == 503
+
+
+class TestGetCartErrors:
+    """Test get_cart error handling."""
+
+    def test_get_cart_database_error(self, mock_conn):
+        """Test get_cart with database error."""
+        from sqlite3 import IntegrityError
+
+        mock_conn.execute.side_effect = IntegrityError("Database integrity error")
+
+        with pytest.raises(HTTPException) as exc:
+            buyer_service.get_cart(mock_conn, user_id=1)
+
+        assert exc.value.status_code == 503
+
+
+class TestPlaceOrderErrors:
+    """Test place_order error handling."""
+
+    def test_place_order_database_error(self, mock_conn):
+        """Test place_order with database error."""
+        from sqlite3 import OperationalError
+
+        mock_cart_row = create_mock_row({
+            "product_id": 1,
+            "quantity": 1,
+            "price": 100.0,
+            "name": "Product",
+        })
+
+        mock_conn.execute.side_effect = [
+            MagicMock(fetchall=MagicMock(return_value=[mock_cart_row])),
+            OperationalError("Database locked")
+        ]
+
+        with pytest.raises(HTTPException) as exc:
+            buyer_service.place_order(mock_conn, user_id=1)
+
+        assert exc.value.status_code == 503
+
+
+class TestListOrdersErrors:
+    """Test list_orders error handling."""
+
+    def test_list_orders_database_error(self, mock_conn):
+        """Test list_orders with database error."""
+        from sqlite3 import DatabaseError
+
+        mock_conn.execute.side_effect = DatabaseError("Database connection lost")
+
+        with pytest.raises(HTTPException) as exc:
+            buyer_service.list_orders(mock_conn, user_id=1)
+
+        assert exc.value.status_code == 503

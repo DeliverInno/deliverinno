@@ -10,13 +10,10 @@ SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
 ALGORITHM = "HS256"
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-
-# Используем env var для выбора БД
 DB_PATH = Path(os.getenv("DATABASE_PATH", str(BASE_DIR / "data" / "deliverinno.db")))
 
 
 def hash_password(password: str) -> str:
-    """Hash password for storage."""
     return hashlib.sha256(password.encode()).hexdigest()
 
 
@@ -37,8 +34,12 @@ class Database:
             return self._memory_conn
 
         # Для файлов создаем новое соединение каждый раз
-        conn = sqlite3.connect(str(self.path))
+        # check_same_thread=False не самое хорошее решение.
+        conn = sqlite3.connect(str(self.path), timeout=30, check_same_thread=False)
         conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL;")
+        conn.execute("PRAGMA synchronous=NORMAL;")
+        conn.execute("PRAGMA foreign_keys=ON;")
         return conn
 
     @contextmanager
@@ -46,6 +47,7 @@ class Database:
         """Context manager for database connections."""
         conn = self.get_connection()
         try:
+            conn.execute("BEGIN DEFERRED")
             yield conn
             conn.commit()
         except Exception:
@@ -95,7 +97,7 @@ class Database:
                     quantity INTEGER NOT NULL CHECK(quantity > 0),
                     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (user_id) REFERENCES users(id),
-                    FOREIGN KEY (product_id) REFERENCES products(id),
+                    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
                     UNIQUE(user_id, product_id)
                 )
             """)
@@ -121,7 +123,7 @@ class Database:
                     quantity INTEGER NOT NULL CHECK(quantity > 0),
                     price_at_time REAL NOT NULL CHECK(price_at_time >= 0),
                     FOREIGN KEY (order_id) REFERENCES orders(id),
-                    FOREIGN KEY (product_id) REFERENCES products(id)
+                    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
                 )
             """)
 
