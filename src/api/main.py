@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from src.core.database import init_db
 from src.api.routers.buyer import router as buyer_router
 from src.api.routers.auth import router as auth_router
 from src.api.routers.seller import router as seller_router
@@ -8,7 +7,6 @@ from src.api.routers.seller import router as seller_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db()
     yield
 
 app = FastAPI(
