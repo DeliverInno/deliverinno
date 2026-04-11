@@ -1,24 +1,14 @@
 """Tests for database initialization (init_db)."""
 
-import sqlite3
-
-from src.core.database import init_db, DB_PATH
-
-
-def remove_db():
-    if DB_PATH.exists():
-        DB_PATH.unlink()
+from src.core.database import Database
 
 
 def test_init_db_creates_demo_users():
     """Test that demo users are created when DB is empty."""
-    remove_db()
+    test_db = Database(":memory:")
+    test_db.init_db()
 
-    # init DB
-    init_db()
-
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
+    conn = test_db.get_connection()
 
     users = conn.execute("SELECT username FROM users").fetchall()
     usernames = {u["username"] for u in users}
@@ -31,16 +21,15 @@ def test_init_db_creates_demo_users():
 
 def test_init_db_does_not_duplicate_demo_users():
     """Test that demo users are not duplicated if already exist."""
-    remove_db()
+    test_db = Database(":memory:")
 
     # first init
-    init_db()
+    test_db.init_db()
 
     # second init (должно НЕ создать новых)
-    init_db()
+    test_db.init_db()
 
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
+    conn = test_db.get_connection()
 
     users = conn.execute(
         "SELECT username, COUNT(*) as cnt FROM users GROUP BY username"
