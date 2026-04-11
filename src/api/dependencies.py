@@ -1,17 +1,19 @@
 from datetime import datetime, timedelta
-from typing import Annotated, Generator
-from sqlite3 import Connection
+from typing import Annotated
 
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from src.core.database import get_db, SECRET_KEY, ALGORITHM
+from src.core.database import SECRET_KEY, ALGORITHM, Database
 
 
-def get_db_conn() -> Generator[Connection, None, None]:
-    """FastAPI dependency for DB connection."""
-    with get_db() as conn:
+_db = Database(path="data/deliverinno.db")
+_db.init_db()
+
+
+def get_db_conn():
+    with _db.get_db() as conn:
         yield conn
 
 
