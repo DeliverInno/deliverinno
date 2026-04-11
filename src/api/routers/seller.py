@@ -1,3 +1,5 @@
+"""Seller API endpoints for managing products."""
+
 from fastapi import APIRouter, Depends, status
 from sqlite3 import Connection
 
@@ -15,6 +17,7 @@ def create_product(
     user=Depends(require_seller),
     conn: Connection = Depends(get_db_conn),
 ):
+    """Create a new product for the authenticated seller."""
     return seller_service.create_product(conn, user["id"], payload)
 
 
@@ -23,6 +26,7 @@ def list_products(
     user=Depends(require_seller),
     conn: Connection = Depends(get_db_conn),
 ):
+    """Get all products created by the current seller."""
     return seller_service.list_products(conn, user["id"])
 
 
@@ -33,6 +37,7 @@ def update_product(
     user=Depends(require_seller),
     conn: Connection = Depends(get_db_conn),
 ):
+    """Update seller's product fields (partial update supported)."""
     return seller_service.update_product(conn, user["id"], product_id, payload)
 
 
@@ -42,4 +47,5 @@ def delete_product(
     user=Depends(require_seller),
     conn: Connection = Depends(get_db_conn),
 ):
+    """Delete seller's product by ID."""
     seller_service.delete_product(conn, user["id"], product_id)
