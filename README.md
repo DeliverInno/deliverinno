@@ -96,11 +96,18 @@ deliverinno/
 │   ├── streamlit/            # Streamlit component tests
 │   └── performance/          # Load tests
 ├── data/                     # SQLite database
-├── pyproject.toml
-├── pytest.ini
-├── .flake8
-├── .bandit
-└── README.md
+├── .bandit                   # Bandit security config
+├── .dockerignore             # Docker ignore rules
+├── .flake8                   # Flake8 linting config
+├── .gitignore               # Git ignore rules
+├── .pre-commit-config.yaml  # Pre-commit hooks config
+├── docker-compose.yml       # Docker Compose configuration
+├── Dockerfile               # Docker image definition
+├── LICENSE                  # MIT License
+├── poetry.lock              # Locked dependency versions
+├── pyproject.toml           # Poetry dependencies & config
+├── pytest.ini               # pytest configuration
+└── README.md                # This file
 ```
 
 ## Database
