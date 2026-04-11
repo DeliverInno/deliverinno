@@ -67,18 +67,6 @@ Access:
 - **Backend (FastAPI)**: http://localhost:8000
 - **API Docs (Swagger)**: http://localhost:8000/docs
 
-### Locally (without Docker)
-
-```bash
-# Terminal 1: Start FastAPI backend
-poetry run uvicorn src.api.main:app --reload
-# Backend runs at http://localhost:8000
-
-# Terminal 2: Start Streamlit frontend
-poetry run streamlit run src/streamlit/streamlit_app.py
-# Frontend runs at http://localhost:8501
-```
-
 ## Project Structure
 
 ```
@@ -105,6 +93,7 @@ deliverinno/
 │   ├── unit/                 # Unit tests
 │   ├── integration/          # Integration tests
 │   ├── e2e/                  # End-to-end tests
+│   ├── streamlit/            # Streamlit component tests
 │   └── performance/          # Load tests
 ├── data/                     # SQLite database
 ├── pyproject.toml
