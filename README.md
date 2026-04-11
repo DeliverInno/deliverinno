@@ -147,16 +147,16 @@ docker compose down && docker compose up --build
 
 ### Buyer
 - `GET /buyer/products` - Get all available products
-- `GET /buyer/cart` - Get cart contents (requires auth)
-- `POST /buyer/cart` - Add item to cart (requires auth)
-- `GET /buyer/orders` - Get order history (requires auth)
-- `POST /buyer/orders` - Place order (requires auth)
+- `GET /buyer/cart` - Get cart contents
+- `POST /buyer/cart` - Add item to cart
+- `GET /buyer/orders` - Get order history
+- `POST /buyer/orders` - Place order
 
 ### Seller
-- `GET /seller/products` - Get your products (requires auth + seller role)
-- `POST /seller/products` - Create product (requires auth + seller role)
-- `PUT /seller/products/{id}` - Update product (requires auth + seller role)
-- `DELETE /seller/products/{id}` - Delete product (requires auth + seller role)
+- `GET /seller/products` - Get your product
+- `POST /seller/products` - Create product
+- `PUT /seller/products/{id}` - Update product
+- `DELETE /seller/products/{id}` - Delete product
 
 ### Service
 - `GET /health` - Health check
