@@ -1,1 +1,1 @@
-﻿"""Streamlit frontend package."""  # bandit: skip file
+"""Streamlit frontend package."""  # bandit: skip file

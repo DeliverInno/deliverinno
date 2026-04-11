@@ -290,3 +290,116 @@ rm data/deliverinno.db
 # Restart the app (will recreate with demo users)
 poetry run uvicorn src.api.main:app --reload
 ```
+## API Endpoints
+
+### Auth
+
+- **POST /auth/register**
+  Register a new user (buyer or seller).
+  Request: `{"username": str, "password": str, "role": "buyer"|"seller"}`
+  Response: access_token, token_type, id, username, role
+
+- **POST /auth/login**
+  Log in as an existing user.
+  Request: `{"username": str, "password": str}`
+  Response: access_token, token_type, id, username, role
+
+---
+
+### Buyer
+
+- **GET /buyer/products**
+  Get all available products with quantity > 0.
+
+- **GET /buyer/cart**
+  Get the current contents of the buyer's cart.
+  Requires authentication (Bearer token).
+
+- **POST /buyer/cart**
+  Add a product to the cart and decrease its stock.
+  Request: `{"product_id": int, "quantity": int}`
+  Requires authentication.
+
+- **GET /buyer/orders**
+  Get the buyer's order history.
+  Requires authentication.
+
+- **POST /buyer/orders**
+  Place an order from the cart and clear the cart.
+  Requires authentication.
+
+---
+
+### Seller
+
+- **GET /seller/products**
+  Get the list of your products.
+  Requires authentication (seller).
+
+- **POST /seller/products**
+  Create a new product.
+  Request: `{"name": str, "description": str, "price": float, "quantity": int}`
+  Requires authentication (seller).
+
+- **PUT /seller/products/{product_id}**
+  Update a product by ID.
+  Request: `{"name": str, "description": str, "price": float, "quantity": int}`
+  Requires authentication (seller).
+
+- **DELETE /seller/products/{product_id}**
+  Delete a product by ID.
+  Requires authentication (seller).
+
+---
+
+### Service
+
+- **GET /health**
+  Health check endpoint.
+
+---
+
+**Interactive API documentation:**
+http://localhost:8000/docs
+
+### Seller Flow
+
+1. **Register as seller**
+   - Go to the registration page, choose "seller" role.
+   - After registration, you are automatically logged in and redirected to the seller dashboard.
+
+2. **Add product**
+   - On the dashboard, fill in product name, description, price, and quantity.
+   - Click "Create" to add the product to your catalog.
+
+3. **Edit product**
+   - In the product list, click "Edit" next to a product.
+   - Update details and save changes.
+
+4. **Delete product**
+   - In the product list, click "Delete" to remove a product from your catalog.
+
+---
+
+### Buyer Flow
+
+1. **Register as buyer**
+   - Go to the registration page, choose "buyer" role.
+   - After registration, you are automatically logged in and redirected to the buyer catalog.
+
+2. **Browse products**
+   - View the catalog of available products (with quantity > 0).
+
+3. **Add to cart**
+   - Click "Add to cart" on a product card.
+   - Specify quantity and confirm.
+
+4. **View cart**
+   - Open the "Shopping cart" page to see all items added.
+
+5. **Place order**
+   - On the cart page, click "Make order" to create an order from the cart.
+   - The cart will be cleared after a successful order.
+
+6. **View order history**
+   - Go to the "Order history" page to see all previous orders and their statuses.

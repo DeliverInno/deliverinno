@@ -1,1 +1,1 @@
-﻿"""API package."""  # bandit: skip file
+"""API package."""  # bandit: skip file

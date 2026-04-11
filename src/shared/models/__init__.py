@@ -1,1 +1,1 @@
-﻿"""Shared models."""  # bandit: skip file
+"""Shared models."""  # bandit: skip file
