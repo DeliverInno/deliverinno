@@ -87,6 +87,7 @@ deliverinno/
 │       ├── streamlit_app.py
 │       ├── login.py
 │       ├── register.py
+│       ├── config.py
 │       ├── buyer/            # Buyer pages
 │       └── seller/           # Seller pages
 ├── tests/
