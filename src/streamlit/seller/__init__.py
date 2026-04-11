@@ -1,1 +1,1 @@
-﻿"""Seller pages"""  # bandit: skip file
+"""Seller pages"""  # bandit: skip file

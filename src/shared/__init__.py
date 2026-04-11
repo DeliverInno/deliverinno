@@ -1,1 +1,1 @@
-﻿"""Shared package"""  # bandit: skip file
+"""Shared package"""  # bandit: skip file

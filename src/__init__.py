@@ -1,1 +1,1 @@
-﻿"""DeliverInno package."""  # bandit: skip file
+"""DeliverInno package."""  # bandit: skip file

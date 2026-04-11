@@ -1,1 +1,1 @@
-﻿"""Buyers pages"""  # bandit: skip file
+"""Buyers pages"""  # bandit: skip file
