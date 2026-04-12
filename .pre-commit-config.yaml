@@ -19,5 +19,5 @@ repos:
     rev: 1.7.8
     hooks:
       - id: bandit
-        args: ["-r", "src", "-ll", "-x", "tests", "--exclude", "*/__init__.py"]
+        args: ["-ll", "-x", "tests", "--exclude", "*/__init__.py"]
         exclude: ".*/__init__\\.py$"

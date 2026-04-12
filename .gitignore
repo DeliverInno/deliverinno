@@ -7,7 +7,6 @@ __pycache__/
 env/
 venv/
 .venv/
-poetry.lock
 
 # Testing
 .pytest_cache/
@@ -16,10 +15,13 @@ htmlcov/
 .tox/
 .mypy_cache/
 
-# Database
+# Database file
 data/*.db
 data/*.sqlite
 data/*.sqlite3
+
+# But keep the folder structure
+!data/.gitkeep
 
 # IDE
 .vscode/
