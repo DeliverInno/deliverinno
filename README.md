@@ -31,13 +31,13 @@ A simple delivery-style web application with seller and buyer functionality.
 - **Quality**: flake8, bandit, radon, locust
 - **CI/CD**: GitHub Actions
 
-## Quick Start
+## Development & Contribution
 
 ### Prerequisites
 - Python 3.10+
 - Poetry
 
-### Installation
+### Setup
 
 ```bash
 # Clone repository
@@ -54,11 +54,20 @@ poetry install # if you have some problem, add --no-root
 poetry run pre-commit install
 ```
 
-## How to Run
+## How to Run (for Users)
 
-### With Docker (Recommended)
+**Requirements:**
+Docker and Docker Compose must be installed.
+
+### 1. Clone the repository and switch to the main branch
 
 ```bash
+git clone https://github.com/DeliverInno/deliverinno.git
+cd deliverinno
+git checkout main
+```
+### 2 Run with Docker
+```
 docker compose up --build
 ```
 
